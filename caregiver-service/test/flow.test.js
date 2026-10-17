@@ -57,7 +57,9 @@ test("pairing, skipped-dose suppression, demo pause, one alert, and revocation w
   });
   assert.equal(paired.status, 200);
   const caregiver = paired.body.secret;
-  assert.equal((await post(env, "/plan/status", {}, patient)).body.connected, true);
+  const connectedStatus = (await post(env, "/plan/status", {}, patient)).body;
+  assert.equal(connectedStatus.connected, true);
+  assert.equal(connectedStatus.lastConnectionEvent.type, "paired");
 
   const date = new Date().toISOString().slice(0, 10);
   const alertTime = new Date(`${date}T09:02:00.000Z`);
@@ -87,6 +89,11 @@ test("pairing, skipped-dose suppression, demo pause, one alert, and revocation w
     assert.equal(sent.length, 1, "the same unrecorded dose should alert once across the full alert window");
     assert.match(sent[0].body, /No se ha registrado/);
     assert.equal(sent[0].body.includes("dose-1"), false);
+
+    assert.equal((await post(env, "/caregiver/leave", {}, caregiver)).status, 200);
+    const disconnectedStatus = (await post(env, "/plan/status", {}, patient)).body;
+    assert.equal(disconnectedStatus.connected, false);
+    assert.equal(disconnectedStatus.lastConnectionEvent.type, "caregiver-left");
 
     assert.equal((await post(env, "/plan/delete", {}, patient)).status, 200);
     assert.equal((await post(env, "/caregiver/status", {}, caregiver)).status, 401);

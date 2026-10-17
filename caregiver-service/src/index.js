@@ -66,6 +66,14 @@ async function caregiverPlan(request, env) {
     .bind(await digest(token)).first();
 }
 
+async function lastConnectionEvent(env, planId) {
+  const event = await env.DB.prepare("SELECT event_type, occurred_at FROM connection_events WHERE plan_id = ? ORDER BY occurred_at DESC, id DESC LIMIT 1")
+    .bind(planId).first();
+  return event
+    ? { type: event.event_type, occurredAt: event.occurred_at }
+    : null;
+}
+
 function validTimezone(value) {
   if (typeof value !== "string" || value.length > 64) return false;
   try {
@@ -186,6 +194,8 @@ async function handleRequest(request, env) {
     const update = await env.DB.prepare("UPDATE plans SET caregiver_secret_hash = ?, caregiver_push_token = ?, caregiver_language = ?, invite_hash = NULL, invite_expires_at = NULL WHERE id = ? AND caregiver_secret_hash IS NULL")
       .bind(await digest(secret), input.pushToken, language, plan.id).run();
     if (!update.meta.changes) return reply({ error: "Invite already used" }, 409);
+    await env.DB.prepare("INSERT INTO connection_events (plan_id, event_type, occurred_at) VALUES (?, 'paired', ?)")
+      .bind(plan.id, Date.now()).run();
     return reply({ secret });
   }
 
@@ -194,8 +204,12 @@ async function handleRequest(request, env) {
     if (!plan) return reply({ error: "Connection not found" }, 401);
     if (path === "/caregiver/status") return reply({ connected: true });
     if (path === "/caregiver/leave") {
-      await env.DB.prepare("UPDATE plans SET caregiver_secret_hash = NULL, caregiver_push_token = NULL WHERE id = ?")
-        .bind(plan.id).run();
+      await env.DB.batch([
+        env.DB.prepare("UPDATE plans SET caregiver_secret_hash = NULL, caregiver_push_token = NULL WHERE id = ?")
+          .bind(plan.id),
+        env.DB.prepare("INSERT INTO connection_events (plan_id, event_type, occurred_at) VALUES (?, 'caregiver-left', ?)")
+          .bind(plan.id, Date.now()),
+      ]);
       return reply({ connected: false });
     }
     if (path === "/caregiver/token") {
@@ -215,12 +229,17 @@ async function handleRequest(request, env) {
 
   const plan = await patientPlan(request, env);
   if (!plan) return reply({ error: "Connection not found" }, 401);
-  if (path === "/plan/status") return reply({ connected: Boolean(plan.caregiver_push_token), paused: Boolean(plan.paused) });
+  if (path === "/plan/status") return reply({
+    connected: Boolean(plan.caregiver_push_token),
+    paused: Boolean(plan.paused),
+    lastConnectionEvent: await lastConnectionEvent(env, plan.id),
+  });
   if (path === "/plan/delete") {
     // Delete dependent data explicitly instead of relying on the database's
     // foreign-key enforcement setting for a privacy-sensitive revoke action.
     await env.DB.batch([
       env.DB.prepare("DELETE FROM alerts WHERE plan_id = ?").bind(plan.id),
+      env.DB.prepare("DELETE FROM connection_events WHERE plan_id = ?").bind(plan.id),
       env.DB.prepare("DELETE FROM dose_records WHERE plan_id = ?").bind(plan.id),
       env.DB.prepare("DELETE FROM doses WHERE plan_id = ?").bind(plan.id),
       env.DB.prepare("DELETE FROM plans WHERE id = ?").bind(plan.id),
@@ -296,6 +315,8 @@ async function scanDue(env, now) {
   await env.DB.prepare("DELETE FROM pairing_attempts WHERE hour_bucket < ?")
     .bind(Math.floor(now.getTime() / 3_600_000) - 24).run();
   await env.DB.prepare("DELETE FROM alerts WHERE sent_at < ?")
+    .bind(now.getTime() - 45 * 24 * 60 * 60_000).run();
+  await env.DB.prepare("DELETE FROM connection_events WHERE occurred_at < ?")
     .bind(now.getTime() - 45 * 24 * 60 * 60_000).run();
   await env.DB.prepare("DELETE FROM dose_records WHERE local_date < ?")
     .bind(new Date(now.getTime() - 45 * 24 * 60 * 60_000).toISOString().slice(0, 10)).run();

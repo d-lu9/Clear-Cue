@@ -37,6 +37,15 @@ CREATE TABLE IF NOT EXISTS alerts (
   PRIMARY KEY (plan_id, dose_id, local_date)
 );
 
+-- Privacy-safe connection history: never includes medication, prescription,
+-- device-token, or secret data. It is removed with the remote plan.
+CREATE TABLE IF NOT EXISTS connection_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  plan_id TEXT NOT NULL REFERENCES plans(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL CHECK (event_type IN ('paired', 'caregiver-left')),
+  occurred_at INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS pairing_attempts (
   ip_hash TEXT NOT NULL,
   hour_bucket INTEGER NOT NULL,
@@ -47,3 +56,4 @@ CREATE TABLE IF NOT EXISTS pairing_attempts (
 CREATE INDEX IF NOT EXISTS idx_plans_ready ON plans(paused, last_sync_at);
 CREATE INDEX IF NOT EXISTS idx_alerts_sent_at ON alerts(sent_at);
 CREATE INDEX IF NOT EXISTS idx_dose_records_date ON dose_records(local_date);
+CREATE INDEX IF NOT EXISTS idx_connection_events_plan_time ON connection_events(plan_id, occurred_at DESC);

@@ -21,6 +21,14 @@ type Props = {
 };
 
 type Role = "patient" | "caregiver" | null;
+type ConnectionEvent = { type: "paired" | "caregiver-left"; occurredAt: number };
+type PlanStatus = { connected: boolean; paused?: boolean; lastConnectionEvent?: ConnectionEvent | null };
+
+function validConnectionEvent(value: unknown): value is ConnectionEvent {
+  return Boolean(value) && typeof value === "object" &&
+    ((value as ConnectionEvent).type === "paired" || (value as ConnectionEvent).type === "caregiver-left") &&
+    Number.isFinite((value as ConnectionEvent).occurredAt);
+}
 
 export function CaregiverModal({ visible, language, largeText, monochrome, demoMode, schedule, records, onClose }: Props) {
   const es = language === "es";
@@ -34,6 +42,7 @@ export function CaregiverModal({ visible, language, largeText, monochrome, demoM
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [lastSync, setLastSync] = useState<Date | null>(null);
+  const [lastConnectionEvent, setLastConnectionEvent] = useState<ConnectionEvent | null>(null);
   const [refresh, setRefresh] = useState(0);
   const connectionCheckVersion = useRef(0);
   const actionInProgress = useRef(false);
@@ -54,17 +63,22 @@ export function CaregiverModal({ visible, language, largeText, monochrome, demoM
       setLoaded(true);
       setStorageError(false);
       if (currentSecret) {
-        void caregiverRequest<{ connected: boolean }>(currentRole === "patient" ? "/plan/status" : "/caregiver/status", {}, currentSecret)
+        void caregiverRequest<PlanStatus>(currentRole === "patient" ? "/plan/status" : "/caregiver/status", {}, currentSecret)
           .then((result) => {
             if (active && checkVersion === connectionCheckVersion.current) {
               setConnected(result.connected);
+              setLastConnectionEvent(validConnectionEvent(result.lastConnectionEvent) ? result.lastConnectionEvent : null);
               setNotice("");
             }
           })
-          .catch(() => {
+          .catch((error) => {
             if (active && checkVersion === connectionCheckVersion.current) {
               setConnected(false);
-              setNotice(es ? "No se pudo verificar la conexión. Revisa Internet." : "Could not check the connection. Check your internet access.");
+              setLastConnectionEvent(null);
+              const code = error instanceof Error ? error.message : "";
+              setNotice(code === "service-401"
+                ? es ? "Esta conexión ya no está activa. Crea un código nuevo y vuelve a vincular los dispositivos." : "This connection is no longer active. Create a new code and link the devices again."
+                : es ? "No se pudo verificar la conexión. Revisa Internet." : "Could not check the connection. Check your internet access.");
             }
           });
       }
@@ -101,11 +115,19 @@ export function CaregiverModal({ visible, language, largeText, monochrome, demoM
 
   useEffect(() => {
     if (!secret || role !== "caregiver") return;
+    let active = true;
     void caregiverPushToken(false)
       .then((pushToken) => caregiverRequest("/caregiver/token", { pushToken, language }, secret))
-      .catch(() => setNotice(es
-        ? "No se pudo actualizar el permiso de notificaciones. Revísalo en los ajustes del dispositivo."
-        : "Could not refresh notification access. Check your device settings."));
+      .catch((error) => {
+        if (!active) return;
+        const code = error instanceof Error ? error.message : "";
+        setNotice(code === "permission-denied"
+          ? es ? "Las notificaciones están desactivadas para ClearCue. Actívalas en los ajustes del dispositivo." : "Notifications are off for ClearCue. Turn them on in your device settings."
+          : code === "service-401"
+            ? es ? "Esta conexión del cuidador ya no está activa. Vuelve a vincular los dispositivos con un código nuevo." : "This caregiver connection is no longer active. Link the devices again with a new code."
+            : es ? "No se pudo actualizar el registro de notificaciones. Comprueba Internet e inténtalo de nuevo." : "Could not refresh the notification registration. Check your internet access and try again.");
+      });
+    return () => { active = false; };
   }, [secret, role, language, refresh, es]);
 
   useEffect(() => {
@@ -177,8 +199,9 @@ export function CaregiverModal({ visible, language, largeText, monochrome, demoM
         await caregiverRequest("/caregiver/token", { pushToken, language }, secret);
         setConnected(true);
       } else {
-        const status = await caregiverRequest<{ connected: boolean }>("/plan/status", {}, secret);
+        const status = await caregiverRequest<PlanStatus>("/plan/status", {}, secret);
         setConnected(status.connected);
+        setLastConnectionEvent(validConnectionEvent(status.lastConnectionEvent) ? status.lastConnectionEvent : null);
       }
       setRefresh((value) => value + 1);
     });
@@ -239,6 +262,11 @@ export function CaregiverModal({ visible, language, largeText, monochrome, demoM
       <Text style={[styles.buttonText, secondary && styles.secondaryText, textSize]}>{label}</Text>
     </Pressable>
   );
+  const connectionEventLabel = lastConnectionEvent
+    ? lastConnectionEvent.type === "paired"
+      ? es ? "Cuidador vinculado" : "Caregiver linked"
+      : es ? "El cuidador dejó de recibir alertas" : "Caregiver stopped receiving alerts"
+    : null;
 
   return <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
     <SafeAreaView style={[styles.screen, monochrome && styles.monochromeScreen]}>
@@ -273,6 +301,7 @@ export function CaregiverModal({ visible, language, largeText, monochrome, demoM
             <Text style={[styles.label, textSize]}>{connected ? (es ? "Cuidador conectado" : "Caregiver connected") : (es ? "Aún no hay cuidador conectado" : "No caregiver connected yet")}</Text>
             {!connected && !demoMode && button(es ? "Crear código de invitación" : "Create invitation code", makeInvite)}
             {!!invite && <Text selectable style={[styles.invite, titleSize]}>{invite}</Text>}
+            {connectionEventLabel && <Text style={[styles.connectionActivity, textSize]}>{es ? "Última actividad de conexión" : "Latest connection activity"}: {connectionEventLabel} · {new Date(lastConnectionEvent!.occurredAt).toLocaleString(es ? "es" : "en")}</Text>}
             {lastSync && <Text style={[styles.body, textSize]}>{es ? "Última sincronización" : "Last synced"}: {lastSync.toLocaleString(es ? "es" : "en")}</Text>}
             {button(es ? "Comprobar conexión" : "Check connection", refreshConnection, true)}
             {button(es ? "Revocar acceso y borrar datos compartidos" : "Revoke access and delete shared data", stopSharing, true)}
@@ -299,6 +328,7 @@ const styles = StyleSheet.create({
   close: { color: "#302923", fontSize: 32, paddingHorizontal: 12 },
   content: { padding: 24, gap: 18, paddingBottom: 56 },
   body: { color: "#3A302B", fontSize: 17, lineHeight: 26 },
+  connectionActivity: { color: "#3A302B", fontSize: 15, lineHeight: 22, backgroundColor: "#EAE3DC", borderRadius: 12, padding: 12 },
   label: { color: "#3A302B", fontSize: 19, fontWeight: "700" },
   largeText: { fontSize: 21, lineHeight: 30 },
   warning: { backgroundColor: "#FFF1E2", color: "#49352B", borderRadius: 12, padding: 14, fontSize: 17, lineHeight: 25 },
