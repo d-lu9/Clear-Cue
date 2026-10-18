@@ -42,7 +42,7 @@ The current ClearCue app is the Expo project in [`mobile/`](mobile). It is the o
 - Encrypted local routine storage with one-time migration from earlier prototype storage, plus strict runtime validation before saved data is used
 - Optional device lock for the medication plan using Face ID, Touch ID, or device passcode in a standalone iPhone build
 - A focused home screen that prioritizes today’s eye-drop routine; swipe between Today, Insights, and Settings instead of scrolling through separate screens.
-- Optional accountless caregiver pairing is implemented but inactive until its separate alert service and a new standalone build are configured; it shares minimal schedule/status data and sends generic, non-clinical push alerts. The reviewed Cloudflare Worker configuration and database schema are included in this repository; activation still requires a `workers.dev` subdomain and two-device testing.
+- Optional accountless caregiver pairing uses the configured Cloudflare alert service to share minimal schedule/status data and send generic, non-clinical push alerts. It remains optional, account-free, and requires two-device testing before anyone relies on it.
 
 ## Release highlights
 
@@ -62,6 +62,7 @@ The current ClearCue app is the Expo project in [`mobile/`](mobile). It is the o
 - Bottle-label color is optional; add/edit menus use slightly larger text throughout, with additional scaling for expanded time and calendar controls when Large text is on.
 - A calmer onboarding experience: the regular welcome guide appears on first launch, after an intentional erase-all-data action, or when opened from Settings. A separate Demo Mode guide appears automatically only on the first demo visit and can be reopened from Settings while in Demo Mode.
 - Spanish coverage throughout the interface: routine, medication form, calendar/time controls, reminders, reports, history, privacy, device protection, guidance, onboarding, alerts, and accessibility labels. Drug and official source names remain unchanged for accuracy.
+- Large Text now also scales medication-search results, selected-label safety details, optional-information guidance, and every editable medication field; the same Spanish copy and black-and-white presentation remain intact.
 - Privacy & Data now includes separate, dismissible in-app Privacy Policy and Terms of Use sheets with local-storage, notifications, optional caregiver-alert, sharing, deletion, medical-safety, availability, and contact disclosures in English and Spanish.
 
 ### Reliability and safety
@@ -89,7 +90,7 @@ Catalog changes are reviewed and shipped in app releases rather than downloaded 
 
 - Establish a recurring review process for the bundled medication catalog and continue improving the focused eye-drop routine experience.
 - Validate encrypted storage and optional device protection on a physical TestFlight build before release.
-- Deploy and test the optional [caregiver alert service](caregiver-service/README.md) on two real phones before enabling it in a build; the current TestFlight build does not contain a configured service.
+- Re-test the optional [caregiver alert service](caregiver-service/README.md) on two real phones after every standalone build or service deployment, especially pairing, re-pairing, missed-dose timing, and revocation.
 - EAS Update is configured for future compatible JavaScript and asset fixes. The next TestFlight build is required to receive updates; native configuration changes still require a new build.
 
 ## Before TestFlight or release

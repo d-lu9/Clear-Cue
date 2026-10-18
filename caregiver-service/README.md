@@ -11,9 +11,10 @@ These are configuration steps, not automatic actions of the app. Check [Workers]
 1. `npm install`
 2. Confirm the tracked `wrangler.jsonc` targets your Cloudflare account and database. The database ID is not a secret.
 3. `npx wrangler d1 execute clearcue-caregiver --remote --file=./schema.sql`
-4. `npm run check:config`
-5. `npm run deploy`
-5. Confirm `https://<your-worker>.workers.dev/health` returns `{"ready":true}`.
+4. `npm test`
+5. `npx wrangler deploy --dry-run`
+6. `npx wrangler deploy`
+7. Confirm `https://<your-worker>.workers.dev/health` returns `{"ready":true}`.
 
 The app must be built with the public Worker URL in `EXPO_PUBLIC_CAREGIVER_API_URL`. In `mobile/`, set it for the production EAS environment:
 

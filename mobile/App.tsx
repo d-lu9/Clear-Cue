@@ -4748,11 +4748,11 @@ function AddMedicationModal(props: ModalProps) {
               placeholder={props.language === "es" ? "Nombre genérico, marca o nombre común" : "Generic, brand, or common name"}
               maxLength={MAX_MEDICATION_NAME_LENGTH}
               placeholderTextColor="#81969A"
-              style={styles.input}
+              style={[styles.input, props.largeText && styles.largeText]}
             />
           </Field>
           <View>
-            <Text style={styles.fieldLabel}>{props.language === "es" ? "Explorar por uso" : "Browse by use"}</Text>
+            <Text style={[styles.fieldLabel, props.largeText && styles.largeFieldLabel]}>{props.language === "es" ? "Explorar por uso" : "Browse by use"}</Text>
             <View style={extraStyles.filterRow}>
               {MEDICATION_FILTERS.map((filter) => (
                 <Pressable
@@ -4773,6 +4773,7 @@ function AddMedicationModal(props: ModalProps) {
                   <Text
                     style={[
                       extraStyles.filterChipText,
+                      props.largeText && styles.largeCardLink,
                       medicationFilter === filter &&
                         extraStyles.filterChipTextSelected,
                     ]}
@@ -4808,11 +4809,11 @@ function AddMedicationModal(props: ModalProps) {
                 }}
               >
                 <Text
-                  style={{ fontSize: 14, fontWeight: "800", color: "#3A302B" }}
+                  style={[{ fontSize: 14, fontWeight: "800", color: "#3A302B" }, props.largeText && styles.largeCardLink]}
                 >
                   {medication.genericName}
                 </Text>
-                <Text style={{ fontSize: 11, color: "#6F625B", marginTop: 3 }}>
+                <Text style={[{ fontSize: 11, color: "#6F625B", marginTop: 3 }, props.largeText && styles.largeSettingDetail]}>
                   {[medication.brandNames.join(" · "), medication.category]
                     .filter(Boolean)
                     .join(" · ")}
@@ -4826,7 +4827,7 @@ function AddMedicationModal(props: ModalProps) {
                 onPress={() => setShowAllSuggestions((current) => !current)}
                 style={extraStyles.emptyGuide}
               >
-                <Text style={extraStyles.cardLink}>
+                <Text style={[extraStyles.cardLink, props.largeText && styles.largeCardLink]}>
                   {showAllSuggestions
                     ? spanish
                       ? "Mostrar menos"
@@ -4848,44 +4849,53 @@ function AddMedicationModal(props: ModalProps) {
               }}
             >
               <Text
-                style={{ fontSize: 14, fontWeight: "800", color: "#3A302B" }}
+                style={[{ fontSize: 14, fontWeight: "800", color: "#3A302B" }, props.largeText && styles.largeCardLink]}
               >
                 {props.selectedMedication.genericName}
               </Text>
               <Text
-                style={{
+                style={[
+                  {
                   fontSize: 12,
                   fontWeight: "700",
                   color: "#B85C4A",
                   marginTop: 3,
-                }}
+                  },
+                  props.largeText && styles.largeSettingDetail,
+                ]}
               >
                 {props.selectedMedication.category} ·{" "}
                 {props.selectedMedication.form}
               </Text>
               <Text
-                style={{
+                style={[
+                  {
                   fontSize: 12,
                   color: "#6F625B",
                   lineHeight: 17,
                   marginTop: 5,
-                }}
+                  },
+                  props.largeText && styles.largeSettingDetail,
+                ]}
               >
                 {props.selectedMedication.commonUse}
               </Text>
               <Text
-                style={{
+                style={[
+                  {
                   fontSize: 11,
                   color: "#704D30",
                   lineHeight: 16,
                   marginTop: 8,
-                }}
+                  },
+                  props.largeText && styles.largeSettingDetail,
+                ]}
               >
                 {spanish
                   ? "Sigue las instrucciones de la etiqueta y de tu profesional de salud. ClearCue no proporciona indicaciones de dosis."
                   : "Use the instructions on your prescription label and from your clinician. ClearCue does not provide dosing directions."}
               </Text>
-              <Text style={{ fontSize: 10, color: "#6F625B", marginTop: 7 }}>
+              <Text style={[{ fontSize: 10, color: "#6F625B", marginTop: 7 }, props.largeText && styles.largeSettingDetail]}>
                 {props.selectedMedication.prescriptionStatus ??
                   (props.selectedMedication.id === "artificial-tears"
                     ? spanish ? "Sin receta" : "Over-the-counter"
@@ -4903,7 +4913,7 @@ function AddMedicationModal(props: ModalProps) {
                 }}
                 style={{ alignSelf: "flex-start", marginTop: 6 }}
               >
-                <Text style={extraStyles.cardLink}>
+                <Text style={[extraStyles.cardLink, props.largeText && styles.largeCardLink]}>
                   {spanish ? "Ver fuentes de DailyMed (requiere internet)" : "View DailyMed sources (requires internet)"}
                 </Text>
               </Pressable>
@@ -4913,7 +4923,7 @@ function AddMedicationModal(props: ModalProps) {
                 onPress={() => setShowMedicationDetails(false)}
                 style={{ alignSelf: "flex-start", marginTop: 10 }}
               >
-                <Text style={extraStyles.cardLink}>
+                <Text style={[extraStyles.cardLink, props.largeText && styles.largeCardLink]}>
                   {spanish ? "Ocultar detalles" : "Hide details"}
                 </Text>
               </Pressable>
@@ -4926,7 +4936,7 @@ function AddMedicationModal(props: ModalProps) {
               onPress={() => setShowMedicationDetails(true)}
               style={extraStyles.emptyGuide}
             >
-              <Text style={extraStyles.cardLink}>
+              <Text style={[extraStyles.cardLink, props.largeText && styles.largeCardLink]}>
                 {spanish ? "Mostrar detalles de la selección" : "Show selected medication details"}
               </Text>
             </Pressable>
@@ -4939,8 +4949,8 @@ function AddMedicationModal(props: ModalProps) {
             largeText={props.largeText}
           />
           <View style={extraStyles.extraTimes}>
-            <Text style={styles.fieldLabel}>{spanish ? "Recordatorios diarios adicionales" : "Additional daily reminders"}</Text>
-            <Text style={extraStyles.supplyHelp}>
+            <Text style={[styles.fieldLabel, props.largeText && styles.largeFieldLabel]}>{spanish ? "Recordatorios diarios adicionales" : "Additional daily reminders"}</Text>
+            <Text style={[extraStyles.supplyHelp, props.largeText && styles.largeSettingDetail]}>
               {spanish ? "Úsalo si tomas el mismo medicamento más de una vez al día." : "Use this when the same medication is taken more than once a day."}
             </Text>
             {props.additionalTimes.map((item, index) => (
@@ -4996,8 +5006,8 @@ function AddMedicationModal(props: ModalProps) {
             onPress={() => setShowOptionalInformation((current) => !current)}
             style={extraStyles.optionalInfoToggle}
           >
-            <Text style={extraStyles.cardLink}>{showOptionalInformation ? (spanish ? "Ocultar información opcional" : "Hide optional information") : (spanish ? "Añadir información opcional" : "Add optional information")}</Text>
-            <Text style={extraStyles.supplyHelp}>{spanish ? "Instrucciones, contactos, receta, nota y estimación de suministro." : "Instructions, contacts, prescription, note, and supply estimate."}</Text>
+            <Text style={[extraStyles.cardLink, props.largeText && styles.largeCardLink]}>{showOptionalInformation ? (spanish ? "Ocultar información opcional" : "Hide optional information") : (spanish ? "Añadir información opcional" : "Add optional information")}</Text>
+            <Text style={[extraStyles.supplyHelp, props.largeText && styles.largeSettingDetail]}>{spanish ? "Instrucciones, contactos, receta, nota y estimación de suministro." : "Instructions, contacts, prescription, note, and supply estimate."}</Text>
           </Pressable>
           {showOptionalInformation && <>
           <Field label={spanish ? "Instrucciones de aplicación del profesional (opcional)" : "Clinician application instructions (optional)"}>
@@ -5011,15 +5021,16 @@ function AddMedicationModal(props: ModalProps) {
               maxLength={MAX_CLINICIAN_TEXT_LENGTH}
               style={[
                 styles.input,
+                props.largeText && styles.largeText,
                 { height: 78, paddingTop: 12, textAlignVertical: "top" },
               ]}
             />
           </Field>
           <View style={extraStyles.detailsSection}>
-            <Text style={styles.fieldLabel}>
+            <Text style={[styles.fieldLabel, props.largeText && styles.largeFieldLabel]}>
               {spanish ? "Detalles privados de la receta (opcional)" : "Private prescription details (optional)"}
             </Text>
-            <Text style={extraStyles.supplyHelp}>
+            <Text style={[extraStyles.supplyHelp, props.largeText && styles.largeSettingDetail]}>
               {spanish ? "Se guardan solo en este dispositivo. Estos datos nunca cambian el horario del medicamento." : "Stored only on this device. These details are never used to change a medication schedule."}
             </Text>
             <Field label={spanish ? "Profesional que receta" : "Prescriber"}>
@@ -5030,7 +5041,7 @@ function AddMedicationModal(props: ModalProps) {
                 placeholder={spanish ? "p. ej., Dra. Rivera" : "e.g. Dr. Rivera"}
                 maxLength={MAX_CONTACT_TEXT_LENGTH}
                 placeholderTextColor="#81969A"
-                style={styles.input}
+                style={[styles.input, props.largeText && styles.largeText]}
               />
             </Field>
             <Field label={spanish ? "Teléfono del profesional" : "Prescriber phone"}>
@@ -5043,7 +5054,7 @@ function AddMedicationModal(props: ModalProps) {
                 autoComplete="tel"
                 maxLength={20}
                 placeholderTextColor="#81969A"
-                style={styles.input}
+                style={[styles.input, props.largeText && styles.largeText]}
               />
             </Field>
             <Field label={spanish ? "Farmacia" : "Pharmacy"}>
@@ -5054,7 +5065,7 @@ function AddMedicationModal(props: ModalProps) {
                 placeholder={spanish ? "p. ej., Farmacia Central" : "e.g. Main Street Pharmacy"}
                 maxLength={MAX_CONTACT_TEXT_LENGTH}
                 placeholderTextColor="#81969A"
-                style={styles.input}
+                style={[styles.input, props.largeText && styles.largeText]}
               />
             </Field>
             <Field label={spanish ? "Teléfono de la farmacia" : "Pharmacy phone"}>
@@ -5067,7 +5078,7 @@ function AddMedicationModal(props: ModalProps) {
                 autoComplete="tel"
                 maxLength={20}
                 placeholderTextColor="#81969A"
-                style={styles.input}
+                style={[styles.input, props.largeText && styles.largeText]}
               />
             </Field>
             <Field label={spanish ? "Número de receta" : "Prescription number"}>
@@ -5078,7 +5089,7 @@ function AddMedicationModal(props: ModalProps) {
                 placeholder={spanish ? "Opcional" : "Optional"}
                 maxLength={MAX_RX_NUMBER_LENGTH}
                 placeholderTextColor="#81969A"
-                style={styles.input}
+                style={[styles.input, props.largeText && styles.largeText]}
               />
             </Field>
             <Field label={spanish ? "Nota personal" : "Personal note"}>
@@ -5091,21 +5102,22 @@ function AddMedicationModal(props: ModalProps) {
                 multiline
                 maxLength={MAX_CLINICIAN_TEXT_LENGTH}
                 style={[
-                  styles.input,
+                styles.input,
+                props.largeText && styles.largeText,
                   { height: 70, paddingTop: 12, textAlignVertical: "top" },
                 ]}
               />
             </Field>
           </View>
           <View style={styles.note}>
-            <Text style={styles.noteTitle}>{spanish ? "ClearCue apoya tu plan" : "ClearCue supports your plan"}</Text>
-            <Text style={styles.noteText}>
+            <Text style={[styles.noteTitle, props.largeText && styles.largeCardLink]}>{spanish ? "ClearCue apoya tu plan" : "ClearCue supports your plan"}</Text>
+            <Text style={[styles.noteText, props.largeText && styles.largeSettingDetail]}>
               {spanish ? "ClearCue no diagnostica, receta, cambia una dosis ni reemplaza las instrucciones de tu profesional o la etiqueta de la receta." : "ClearCue does not diagnose, prescribe, change a dose, or replace your clinician’s instructions or prescription label."}
             </Text>
           </View>
           <View style={extraStyles.supplySection}>
-            <Text style={styles.fieldLabel}>{spanish ? "Estimación de suministro opcional" : "Optional supply estimate"}</Text>
-            <Text style={extraStyles.supplyHelp}>
+            <Text style={[styles.fieldLabel, props.largeText && styles.largeFieldLabel]}>{spanish ? "Estimación de suministro opcional" : "Optional supply estimate"}</Text>
+            <Text style={[extraStyles.supplyHelp, props.largeText && styles.largeSettingDetail]}>
               {spanish ? "Úsala solo para planificación. Confirma las reposiciones y las instrucciones del frasco con tu farmacia o profesional." : "Use this only as a planning estimate. Confirm refills and bottle instructions with your pharmacy or clinician."}
             </Text>
             <Field label={spanish ? "Tamaño del frasco (mL)" : "Bottle size (mL)"}>
@@ -5116,7 +5128,7 @@ function AddMedicationModal(props: ModalProps) {
                 placeholder={spanish ? "p. ej., 5" : "e.g. 5"}
                 keyboardType="decimal-pad"
                 placeholderTextColor="#81969A"
-                style={styles.input}
+                style={[styles.input, props.largeText && styles.largeText]}
               />
             </Field>
             <View style={extraStyles.supplyRow}>
@@ -5128,7 +5140,7 @@ function AddMedicationModal(props: ModalProps) {
                     onChangeText={props.onDropsPerApplication}
                     keyboardType="number-pad"
                     placeholderTextColor="#81969A"
-                    style={styles.input}
+                    style={[styles.input, props.largeText && styles.largeText]}
                   />
                 </Field>
               </View>
@@ -5140,7 +5152,7 @@ function AddMedicationModal(props: ModalProps) {
                     onChangeText={props.onApplicationsPerDay}
                     keyboardType="number-pad"
                     placeholderTextColor="#81969A"
-                    style={styles.input}
+                    style={[styles.input, props.largeText && styles.largeText]}
                   />
                 </Field>
               </View>
@@ -5159,10 +5171,10 @@ function AddMedicationModal(props: ModalProps) {
                 onChangeText={props.onWarningDays}
                 keyboardType="number-pad"
                 placeholderTextColor="#81969A"
-                style={styles.input}
+                style={[styles.input, props.largeText && styles.largeText]}
               />
             </Field>
-            <Text style={extraStyles.supplyFootnote}>
+            <Text style={[extraStyles.supplyFootnote, props.largeText && styles.largeSettingDetail]}>
               {spanish ? "ClearCue estima usando 20 gotas por mL. El volumen real del frasco y el tamaño de la gota pueden variar." : "ClearCue estimates using 20 drops per mL. Actual bottle volume and drop size can vary."}
             </Text>
           </View>
@@ -5184,6 +5196,7 @@ function AddMedicationModal(props: ModalProps) {
                   <Text
                     style={[
                       styles.choiceText,
+                      props.largeText && styles.largeActionText,
                       props.eye === item && styles.choiceTextSelected,
                     ]}
                   >
@@ -5235,8 +5248,8 @@ function AddMedicationModal(props: ModalProps) {
             </View>
           </Field>
           <View style={styles.note}>
-            <Text style={styles.noteTitle}>{spanish ? "Confirma tu frasco" : "Confirm your bottle"}</Text>
-            <Text style={styles.noteText}>
+            <Text style={[styles.noteTitle, props.largeText && styles.largeCardLink]}>{spanish ? "Confirma tu frasco" : "Confirm your bottle"}</Text>
+            <Text style={[styles.noteText, props.largeText && styles.largeSettingDetail]}>
               {spanish ? "El empaque de marca y genérico puede variar. Elige el color de la etiqueta que ves en tu frasco y sigue las instrucciones de tu profesional." : "Brand and generic packaging can differ. Choose the label color you see on your bottle and follow your clinician’s instructions."}
             </Text>
           </View>
@@ -5251,7 +5264,7 @@ function AddMedicationModal(props: ModalProps) {
                   onPress={props.onDismissNotice}
                   style={styles.choice}
                 >
-                  <Text style={styles.choiceText}>{spanish ? "Seguir editando" : "Keep editing"}</Text>
+                  <Text style={[styles.choiceText, props.largeText && styles.largeActionText]}>{spanish ? "Seguir editando" : "Keep editing"}</Text>
                 </Pressable>
                 {props.formNotice.allowReview && (
                   <Pressable
@@ -5355,7 +5368,7 @@ function TimePicker({
             placeholder={spanish ? "O escribe, por ejemplo, 20:30" : "Or type e.g. 8:30 AM"}
             maxLength={16}
             placeholderTextColor="#81969A"
-            style={styles.input}
+            style={[styles.input, largeText && styles.largeText]}
           />
           <Text style={[extraStyles.supplyHelp, largeText && styles.largeMenuText, monochrome && styles.monochromeText]}>
             {spanish ? "Elige una hora y minutos, o escribe una hora exacta en formato de 24 horas. El recordatorio de tu dispositivo usará esta hora exacta." : "Choose an hour, minutes, and AM/PM—or type a precise time. Your device reminder will use this exact time."}

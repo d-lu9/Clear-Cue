@@ -5,11 +5,6 @@
     "version": "1.27.0",
     "orientation": "portrait",
     "icon": "./assets/clearcue-icon.png",
-    "splash": {
-      "image": "./assets/clearcue-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FAF7F2"
-    },
     "userInterfaceStyle": "light",
     "plugins": [
       "expo-notifications",
@@ -19,7 +14,16 @@
           "faceIDPermission": "Use Face ID to protect your ClearCue medication plan."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#FAF7F2",
+          "imageWidth": 160,
+          "resizeMode": "contain"
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": true,
