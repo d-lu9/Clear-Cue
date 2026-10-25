@@ -26,7 +26,7 @@
       ]
     ],
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.congressionappchallenge.clearcue",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
